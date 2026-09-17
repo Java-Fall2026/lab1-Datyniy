@@ -11,7 +11,7 @@ java {
 
 application {
     // <-- впишіть свій пакет, напр. 'ua.hotel.Main'
-    mainClass = 'ua.Main'
+    mainClass = 'ua.airline.Main'
 }
 
 tasks.withType(JavaCompile).configureEach {
