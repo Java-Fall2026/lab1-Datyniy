@@ -2,8 +2,10 @@ package ua.airline;
 
 import ua.airline.model.Airport;
 import ua.airline.model.Flight;
+import ua.airline.model.FlightStatus;
 import ua.airline.model.FlightTicket;
 import ua.airline.model.Passenger;
+import ua.airline.model.SeatClass;
 import ua.airline.util.AirlineUtils;
 
 import java.time.LocalDate;
@@ -39,38 +41,114 @@ public final class Main {
                 arrivalAirport,
                 LocalDateTime.of(2026, 10, 10, 10, 0),
                 LocalDateTime.of(2026, 10, 10, 12, 0),
-                "scheduled"
+                FlightStatus.SCHEDULED
         );
 
         FlightTicket ticket = new FlightTicket(
                 flight,
                 passenger,
-                "economy",
+                SeatClass.ECONOMY,
                 125.50
         );
 
         System.out.println();
+        System.out.println("Звернення до компонентів record");
+        System.out.println("Код аеропорту: " + departureAirport.iataCode());
+        System.out.println("Місто: " + departureAirport.cityName());
+        System.out.println("Пасажир: " + passenger.fullName());
+        System.out.println("Дата народження: " + passenger.birthDate());
+        System.out.println(
+                "Клас обслуговування: "
+                        + ticket.seatClass().getDisplayName()
+        );
+        System.out.println("Ціна квитка: " + ticket.price());
+
+        System.out.println();
         System.out.println("Нормалізація");
         System.out.println(
-                "\"  kbp \" -> \""
-                        + departureAirport.getIataCode()
-                        + "\""
+                "\"  kbp \" -> \"" + departureAirport.iataCode() + "\""
         );
         System.out.println(
                 "\"Ivan@MAIL.com\" -> \""
-                        + AirlineUtils.normalizeLowercase(
-                        "Ivan@MAIL.com"
-                )
+                        + AirlineUtils.normalizeLowercase("Ivan@MAIL.com")
                         + "\""
         );
 
         System.out.println();
-        System.out.println("Три порушення правил");
+        System.out.println("Усі статуси та перший switch-вираз");
+
+        for (FlightStatus status : FlightStatus.values()) {
+            System.out.println(
+                    status + " — " + AirlineUtils.statusDescription(status)
+            );
+        }
+
+        System.out.println();
+        System.out.println("Класи обслуговування та другий switch-вираз");
+
+        for (SeatClass seatClass : SeatClass.values()) {
+            System.out.println(
+                    seatClass
+                            + " — "
+                            + seatClass.getDisplayName()
+                            + ": "
+                            + AirlineUtils.serviceDescription(seatClass)
+            );
+        }
+
+        System.out.println();
+        System.out.println("Зміна статусу рейсу");
+        System.out.println(
+                "До зміни: "
+                        + AirlineUtils.statusDescription(flight.getStatus())
+        );
+
+        flight.setStatus(FlightStatus.BOARDING);
+
+        System.out.println(
+                "Після зміни: "
+                        + AirlineUtils.statusDescription(flight.getStatus())
+        );
+
+        System.out.println();
+        System.out.println("Неправильне значення для valueOf");
+
+        try {
+            FlightStatus.valueOf("UNKNOWN");
+        } catch (IllegalArgumentException e) {
+            System.out.println(
+                    "Перехоплено IllegalArgumentException: "
+                            + "статусу UNKNOWN не існує."
+            );
+        }
+
+        System.out.println();
+        System.out.println("Перевірка відсутнього статусу");
+
+        try {
+            flight.setStatus(null);
+        } catch (IllegalArgumentException e) {
+            System.out.println(
+                    "Перехоплено IllegalArgumentException: "
+                            + "статус не може бути відсутнім."
+            );
+        }
+
+        System.out.println(
+                "Статус після помилки: "
+                        + AirlineUtils.statusDescription(flight.getStatus())
+        );
+
+        System.out.println();
+        System.out.println("Невалідні дані в компактних конструкторах");
 
         try {
             Airport.of("KB", "Kyiv");
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+            System.out.println(
+                    "Перехоплено IllegalArgumentException: "
+                            + "код аеропорту має містити три латинські літери."
+            );
         }
 
         try {
@@ -80,74 +158,51 @@ public final class Main {
                     LocalDate.now().plusDays(1)
             );
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+            System.out.println(
+                    "Перехоплено IllegalArgumentException: "
+                            + "дата народження не може бути в майбутньому."
+            );
         }
 
         try {
             new FlightTicket(
                     flight,
                     passenger,
-                    "business",
+                    SeatClass.BUSINESS,
                     -50.0
             );
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+            System.out.println(
+                    "Перехоплено IllegalArgumentException: "
+                            + "ціна квитка має бути більшою за нуль."
+            );
         }
 
         System.out.println();
-        System.out.println("Перевірка сеттера");
-        System.out.println(
-                "Статус до помилки: " + flight.getStatus()
-        );
+        System.out.println("Порівняння двох однакових record-об'єктів");
 
-        try {
-            flight.setStatus("UNKNOWN");
-        } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
-        }
-
-        System.out.println(
-                "Статус після помилки: " + flight.getStatus()
-        );
-
-        System.out.println();
-        System.out.println("equals і hashCode");
-
-        Passenger samePassenger = Passenger.of(
-                "AA123456",
-                "Another Name",
-                LocalDate.of(1999, 1, 1)
-        );
-
-        Passenger differentPassenger = Passenger.of(
-                "CC999999",
-                "Different Passenger",
-                LocalDate.of(2001, 2, 20)
+        FlightTicket sameTicket = new FlightTicket(
+                flight,
+                passenger,
+                SeatClass.ECONOMY,
+                125.50
         );
 
         System.out.println(
-                "passenger == samePassenger: "
-                        + (passenger == samePassenger)
+                "Посилання на той самий об'єкт: " + (ticket == sameTicket)
         );
         System.out.println(
-                "passenger.equals(samePassenger): "
-                        + passenger.equals(samePassenger)
+                "Однакові дані: " + ticket.equals(sameTicket)
         );
         System.out.println(
-                "passenger hashCode: "
-                        + passenger.hashCode()
+                "Хеш-код першого квитка: " + ticket.hashCode()
         );
         System.out.println(
-                "samePassenger hashCode: "
-                        + samePassenger.hashCode()
-        );
-        System.out.println(
-                "passenger.equals(differentPassenger): "
-                        + passenger.equals(differentPassenger)
+                "Хеш-код другого квитка: " + sameTicket.hashCode()
         );
 
         System.out.println();
-        System.out.println("Обчислювані методи");
+        System.out.println("Обчислювані методи з першої лабораторної");
         System.out.println(
                 "Маршрут: " + AirlineUtils.route(flight)
         );
@@ -160,18 +215,18 @@ public final class Main {
         System.out.println();
         System.out.println("Форматування ціни");
         System.out.println(
-                AirlineUtils.formatMoney(ticket.getPrice())
+                AirlineUtils.formatMoney(ticket.price())
         );
 
         System.out.println();
-        System.out.println("Усі сутності");
-        System.out.println(passenger);
+        System.out.println("Згенерований toString для records");
         System.out.println(departureAirport);
         System.out.println(arrivalAirport);
-        System.out.println(flight);
+        System.out.println(passenger);
         System.out.println(ticket);
 
-        // ValidationHelper.requireNotBlank("", "Value");
-        // Does not compile because ValidationHelper is package-private.
+        System.out.println();
+        System.out.println("Рейс залишається звичайним класом");
+        System.out.println(flight);
     }
 }
