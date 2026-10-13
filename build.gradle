@@ -21,3 +21,14 @@ tasks.withType(JavaCompile).configureEach {
 tasks.withType(JavaExec).configureEach {
     defaultCharacterEncoding = 'UTF-8'
 }
+
+// --- lab3: unit tests ---
+dependencies {
+    testImplementation platform('org.junit:junit-bom:6.1.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly    'org.junit.platform:junit-platform-launcher'
+}
+ 
+test {
+    useJUnitPlatform()
+}
