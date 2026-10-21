@@ -13,7 +13,7 @@ public class Flight extends BaseEntity {
     private final Airport arrivalAirport;
     private final LocalDateTime departureTime;
     private final LocalDateTime arrivalTime;
-    private String status;
+    private FlightStatus status;
 
     public Flight(
             String flightNumber,
@@ -21,7 +21,7 @@ public class Flight extends BaseEntity {
             Airport arrivalAirport,
             LocalDateTime departureTime,
             LocalDateTime arrivalTime,
-            String status
+            FlightStatus status
     ) {
         super();
 
@@ -83,12 +83,15 @@ public class Flight extends BaseEntity {
         return arrivalTime;
     }
 
-    public String getStatus() {
+    public FlightStatus getStatus() {
         return status;
     }
 
-    public final void setStatus(String status) {
-        this.status = AirlineUtils.validateStatus(status);
+    public final void setStatus(FlightStatus status) {
+        this.status = AirlineUtils.requireNotNull(
+                status,
+                "Flight status"
+        );
     }
 
     @Override
@@ -101,11 +104,7 @@ public class Flight extends BaseEntity {
         }
 
         Flight flight = (Flight) o;
-
-        return Objects.equals(
-                flightNumber,
-                flight.flightNumber
-        );
+        return Objects.equals(flightNumber, flight.flightNumber);
     }
 
     @Override
@@ -121,7 +120,7 @@ public class Flight extends BaseEntity {
                 ", arrivalAirport=" + arrivalAirport +
                 ", departureTime=" + departureTime +
                 ", arrivalTime=" + arrivalTime +
-                ", status='" + status + '\'' +
+                ", status=" + status +
                 ", createdAt=" + createdAt +
                 '}';
     }

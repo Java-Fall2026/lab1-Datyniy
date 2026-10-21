@@ -2,51 +2,29 @@ package ua.airline.util;
 
 import ua.airline.model.Airport;
 import ua.airline.model.Flight;
+import ua.airline.model.FlightStatus;
+import ua.airline.model.SeatClass;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Set;
 
 public final class AirlineUtils {
 
-    static final String IATA_PATTERN = "[A-Z]{3}";
-
-    static final Set<String> ALLOWED_STATUSES = Set.of(
-            "SCHEDULED",
-            "BOARDING",
-            "DELAYED",
-            "COMPLETED",
-            "CANCELLED"
-    );
-
-    static final Set<String> ALLOWED_SEAT_CLASSES = Set.of(
-            "ECONOMY",
-            "BUSINESS",
-            "FIRST"
-    );
+    private static final String IATA_PATTERN = "[A-Z]{3}";
 
     private AirlineUtils() {
     }
 
-    public static <T> T requireNotNull(
-            T value,
-            String fieldName
-    ) {
+    public static <T> T requireNotNull(T value, String fieldName) {
         return ValidationHelper.requireNotNull(value, fieldName);
     }
 
-    public static String requireNotBlank(
-            String value,
-            String fieldName
-    ) {
+    public static String requireNotBlank(String value, String fieldName) {
         return ValidationHelper.requireNotBlank(value, fieldName);
     }
 
-    public static double requirePositive(
-            double value,
-            String fieldName
-    ) {
+    public static double requirePositive(double value, String fieldName) {
         return ValidationHelper.requirePositive(value, fieldName);
     }
 
@@ -65,17 +43,17 @@ public final class AirlineUtils {
     }
 
     public static String normalize(String value) {
-        ValidationHelper.requireNotBlank(value, "Value");
+        requireNotBlank(value, "Value");
         return FormatHelper.normalize(value);
     }
 
     public static String normalizeLowercase(String value) {
-        ValidationHelper.requireNotBlank(value, "Value");
+        requireNotBlank(value, "Value");
         return FormatHelper.normalizeLowercase(value);
     }
 
     public static String capitalize(String value) {
-        ValidationHelper.requireNotBlank(value, "Value");
+        requireNotBlank(value, "Value");
         return FormatHelper.capitalize(value);
     }
 
@@ -84,7 +62,7 @@ public final class AirlineUtils {
     }
 
     public static LocalDate validateBirthDate(LocalDate birthDate) {
-        ValidationHelper.requireNotNull(birthDate, "Birth date");
+        requireNotNull(birthDate, "Birth date");
 
         if (birthDate.isAfter(LocalDate.now())) {
             throw new IllegalArgumentException(
@@ -97,7 +75,7 @@ public final class AirlineUtils {
     }
 
     public static String validateIataCode(String iataCode) {
-        ValidationHelper.requireNotBlank(iataCode, "IATA code");
+        requireNotBlank(iataCode, "IATA code");
 
         String normalized = FormatHelper.normalize(iataCode);
 
@@ -111,55 +89,17 @@ public final class AirlineUtils {
         return normalized;
     }
 
-    public static String validateStatus(String status) {
-        ValidationHelper.requireNotBlank(status, "Flight status");
-
-        String normalized = FormatHelper.normalize(status);
-
-        if (!ALLOWED_STATUSES.contains(normalized)) {
-            throw new IllegalArgumentException(
-                    "Flight status must be one of "
-                            + ALLOWED_STATUSES
-                            + ", got: " + status
-            );
-        }
-
-        return normalized;
-    }
-
-    public static String validateSeatClass(String seatClass) {
-        ValidationHelper.requireNotBlank(seatClass, "Seat class");
-
-        String normalized = FormatHelper.normalize(seatClass);
-
-        if (!ALLOWED_SEAT_CLASSES.contains(normalized)) {
-            throw new IllegalArgumentException(
-                    "Seat class must be one of "
-                            + ALLOWED_SEAT_CLASSES
-                            + ", got: " + seatClass
-            );
-        }
-
-        return normalized;
-    }
-
     public static void requireDifferentAirports(
             Airport departureAirport,
             Airport arrivalAirport
     ) {
-        ValidationHelper.requireNotNull(
-                departureAirport,
-                "Departure airport"
-        );
-        ValidationHelper.requireNotNull(
-                arrivalAirport,
-                "Arrival airport"
-        );
+        requireNotNull(departureAirport, "Departure airport");
+        requireNotNull(arrivalAirport, "Arrival airport");
 
-        if (departureAirport.equals(arrivalAirport)) {
+        if (departureAirport.iataCode().equals(arrivalAirport.iataCode())) {
             throw new IllegalArgumentException(
                     "Arrival airport must differ from departure airport, got: "
-                            + arrivalAirport.getIataCode()
+                            + arrivalAirport.iataCode()
             );
         }
     }
@@ -168,14 +108,8 @@ public final class AirlineUtils {
             LocalDateTime departureTime,
             LocalDateTime arrivalTime
     ) {
-        ValidationHelper.requireNotNull(
-                departureTime,
-                "Departure time"
-        );
-        ValidationHelper.requireNotNull(
-                arrivalTime,
-                "Arrival time"
-        );
+        requireNotNull(departureTime, "Departure time");
+        requireNotNull(arrivalTime, "Arrival time");
 
         if (!arrivalTime.isAfter(departureTime)) {
             throw new IllegalArgumentException(
@@ -186,7 +120,7 @@ public final class AirlineUtils {
     }
 
     public static long flightDurationMinutes(Flight flight) {
-        ValidationHelper.requireNotNull(flight, "Flight");
+        requireNotNull(flight, "Flight");
 
         return Duration.between(
                 flight.getDepartureTime(),
@@ -195,10 +129,32 @@ public final class AirlineUtils {
     }
 
     public static String route(Flight flight) {
-        ValidationHelper.requireNotNull(flight, "Flight");
+        requireNotNull(flight, "Flight");
 
-        return flight.getDepartureAirport().getIataCode()
+        return flight.getDepartureAirport().iataCode()
                 + " → "
-                + flight.getArrivalAirport().getIataCode();
+                + flight.getArrivalAirport().iataCode();
+    }
+
+    public static String statusDescription(FlightStatus status) {
+        requireNotNull(status, "Flight status");
+
+        return switch (status) {
+            case SCHEDULED -> "Рейс заплановано";
+            case BOARDING -> "Триває посадка";
+            case DELAYED -> "Рейс затримано";
+            case COMPLETED -> "Рейс завершено";
+            case CANCELLED -> "Рейс скасовано";
+        };
+    }
+
+    public static String serviceDescription(SeatClass seatClass) {
+        requireNotNull(seatClass, "Seat class");
+
+        return switch (seatClass) {
+            case ECONOMY -> "Стандартне обслуговування";
+            case BUSINESS -> "Підвищений комфорт";
+            case FIRST -> "Обслуговування першого класу";
+        };
     }
 }
