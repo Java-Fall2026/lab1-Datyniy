@@ -1,0 +1,7 @@
+passportSeriesNum,fullName,birthDate
+PP10001,Ivan Petrenko,2000-05-12
+PP10002,Olena Kovalenko,1998-11-03
+PP10003,Invalid Date,not-a-date
+PP10004,,2001-03-15
+PP10005,Missing Date
+PP10006,Andrii Melnyk,1995-07-21
