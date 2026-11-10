@@ -3,12 +3,18 @@ package ua.airline.model;
 import ua.airline.util.AirlineUtils;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 
 public record Passenger(
         String passportSeriesNum,
         String fullName,
         LocalDate birthDate
-) {
+) implements Comparable<Passenger> {
+    private static final Comparator<Passenger> NATURAL_ORDER =
+            Comparator.comparing(Passenger::passportSeriesNum)
+                    .thenComparing(Passenger::fullName)
+                    .thenComparing(Passenger::birthDate);
+
     public Passenger {
         passportSeriesNum = AirlineUtils.requireNotBlank(
                 passportSeriesNum,
@@ -21,6 +27,11 @@ public record Passenger(
         );
 
         birthDate = AirlineUtils.validateBirthDate(birthDate);
+    }
+
+    @Override
+    public int compareTo(Passenger other) {
+        return NATURAL_ORDER.compare(this, other);
     }
 
     public static Passenger of(

@@ -4,10 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * Stores items by an extracted identity in insertion order.
@@ -110,14 +113,14 @@ public class GenericRepository<T> {
 
         if (item == null) {
             log.warn(
-                    "Identity '{}' was not found in repository '{}'",
+                    "Identity '{}' was not found in repository '{}': 0 items",
                     identity,
                     name
             );
             return Optional.empty();
         }
 
-        log.info("Found identity '{}' in repository '{}'", identity, name);
+        log.info("Found identity '{}' in repository '{}': 1 item", identity, name);
         return Optional.of(item);
     }
 
@@ -127,6 +130,41 @@ public class GenericRepository<T> {
      */
     public List<T> findAll() {
         return List.copyOf(items.values());
+    }
+
+    public List<T> findAllSorted(Comparator<T> comparator) {
+        Objects.requireNonNull(comparator, "Comparator must not be null");
+        List<T> result = stream().sorted(comparator).toList();
+        log.info("Sorted repository '{}' using comparator '{}': {} items",
+                name, comparator, result.size());
+        return result;
+    }
+
+    /**
+     * Sorts string identities lexicographically, not numerically.
+     */
+    public List<T> findAllSortedByIdentity(SortOrder order) {
+        Objects.requireNonNull(order, "Sort order must not be null");
+        Comparator<Map.Entry<String, T>> comparator = Map.Entry.comparingByKey();
+        if (order == SortOrder.DESC) {
+            comparator = comparator.reversed();
+        }
+        List<T> result = items.entrySet().stream()
+                .sorted(comparator)
+                .map(Map.Entry::getValue)
+                .toList();
+        log.info("Sorted repository '{}' by identity {}: {} items",
+                name, order, result.size());
+        return result;
+    }
+
+    /**
+     * Returns a fresh, single-use stream backed by the repository.
+     * Do not structurally modify the repository while consuming it.
+     * Unlike findAll(), this method does not create a list snapshot.
+     */
+    public Stream<T> stream() {
+        return items.values().stream();
     }
 
     public int size() {
