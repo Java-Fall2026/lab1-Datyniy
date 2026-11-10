@@ -37,3 +37,11 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+tasks.register('benchmark', JavaExec) {
+    group = 'application'
+    description = 'Compare identity lookup in a map and a list.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'ua.airline.repository.SearchBenchmark'
+    systemProperty 'logback.configurationFile', 'logback-benchmark.xml'
+}
