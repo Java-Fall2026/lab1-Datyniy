@@ -6,7 +6,7 @@ import ua.common.BaseEntity;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class Flight extends BaseEntity {
+public final class Flight extends BaseEntity implements Comparable<Flight> {
 
     private final String flightNumber;
     private final Airport departureAirport;
@@ -92,6 +92,11 @@ public class Flight extends BaseEntity {
                 status,
                 "Flight status"
         );
+    }
+
+    @Override
+    public int compareTo(Flight other) {
+        return flightNumber.compareTo(other.flightNumber);
     }
 
     @Override
