@@ -1,33 +1,29 @@
 package ua.airline.model;
 
-import ua.airline.util.AirlineUtils;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 import java.util.Comparator;
 
 public record Passenger(
+        @NotBlank(message = "Вкажіть серію та номер паспорта")
         String passportSeriesNum,
+
+        @NotBlank(message = "Вкажіть ім’я пасажира")
+        @Size(max = 100, message = "Ім’я пасажира має містити не більше 100 символів")
         String fullName,
+
+        @NotNull(message = "Вкажіть дату народження")
+        @PastOrPresent(message = "Дата народження не може бути в майбутньому")
         LocalDate birthDate
 ) implements Comparable<Passenger> {
     private static final Comparator<Passenger> NATURAL_ORDER =
             Comparator.comparing(Passenger::passportSeriesNum)
                     .thenComparing(Passenger::fullName)
                     .thenComparing(Passenger::birthDate);
-
-    public Passenger {
-        passportSeriesNum = AirlineUtils.requireNotBlank(
-                passportSeriesNum,
-                "Passport series and number"
-        );
-
-        fullName = AirlineUtils.requireNotBlank(
-                fullName,
-                "Full name"
-        );
-
-        birthDate = AirlineUtils.validateBirthDate(birthDate);
-    }
 
     @Override
     public int compareTo(Passenger other) {

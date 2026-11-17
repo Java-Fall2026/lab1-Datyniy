@@ -1,0 +1,77 @@
+[
+  {
+    "passportSeriesNum": "PP10001",
+    "fullName": "Іван Петренко",
+    "birthDate": "1988-05-12"
+  },
+  {
+    "passportSeriesNum": "PP10002",
+    "fullName": "Олена Коваленко",
+    "birthDate": "1989-05-12"
+  },
+  {
+    "passportSeriesNum": "",
+    "fullName": "Олексій Козак",
+    "birthDate": "1996-05-12"
+  },
+  {
+    "passportSeriesNum": "PP10003",
+    "fullName": "Андрій Мельник",
+    "birthDate": "1990-05-12"
+  },
+  {
+    "passportSeriesNum": "PP10004",
+    "fullName": "Марія Шевченко",
+    "birthDate": "1991-05-12"
+  },
+  {
+    "passportSeriesNum": "PP10012",
+    "fullName": "Ганна Бойко",
+    "birthDate": "2999-01-01"
+  },
+  {
+    "passportSeriesNum": "PP10005",
+    "fullName": "Назар Коваль",
+    "birthDate": "1992-05-12"
+  },
+  {
+    "passportSeriesNum": "PP10006",
+    "fullName": "Софія Бондар",
+    "birthDate": "1993-05-12"
+  },
+  {
+    "passportSeriesNum": "PP10013",
+    "fullName": "Олександра Марія Анна Катерина Софія Олена Наталія Ірина Вікторія Анастасія Валентина Володимирівна Коваленко",
+    "birthDate": "1994-01-31"
+  },
+  {
+    "passportSeriesNum": "PP10007",
+    "fullName": "Богдан Ткачук",
+    "birthDate": "1994-05-12"
+  },
+  {
+    "passportSeriesNum": "PP10008",
+    "fullName": "Ірина Кравчук",
+    "birthDate": "1995-05-12"
+  },
+  {
+    "passportSeriesNum": "PP10001",
+    "fullName": "Петро Петренко",
+    "birthDate": "1988-05-12"
+  },
+  {
+    "passportSeriesNum": "PP10009",
+    "fullName": "Оксана Поліщук",
+    "birthDate": "1996-05-12"
+  },
+  {
+    "passportSeriesNum": "PP10010",
+    "fullName": "Данило Мороз",
+    "birthDate": "1997-05-12"
+  },
+  {
+    "passportSeriesNum": "PP10011",
+    "fullName": "Катерина Савчук",
+    "birthDate": "1998-05-12"
+  }
+]
