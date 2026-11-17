@@ -61,7 +61,7 @@ class AirlineCsvTest {
 
         assertTrue(exception.getMessage().startsWith("Line 8:"));
         assertInstanceOf(IllegalArgumentException.class, exception.getCause());
-        assertTrue(exception.getCause().getMessage().contains("Full name"));
+        assertTrue(exception.getCause().getMessage().contains("Вкажіть ім’я пасажира"));
     }
 
     @Test

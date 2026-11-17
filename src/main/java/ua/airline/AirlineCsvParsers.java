@@ -1,5 +1,7 @@
 package ua.airline;
 
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import ua.airline.model.Airport;
 import ua.airline.model.Passenger;
 
@@ -10,6 +12,9 @@ public final class AirlineCsvParsers {
 
     public static final String PASSENGER_HEADER = "passportSeriesNum,fullName,birthDate";
     public static final String AIRPORT_HEADER = "iataCode,cityName";
+
+    private static final Validator PASSENGER_VALIDATOR =
+            Validation.buildDefaultValidatorFactory().getValidator();
 
     private AirlineCsvParsers() {
     }
@@ -25,11 +30,16 @@ public final class AirlineCsvParsers {
         }
 
         try {
-            return Passenger.of(
+            Passenger passenger = Passenger.of(
                     fields[0].trim(),
                     fields[1].trim(),
                     LocalDate.parse(fields[2].trim())
             );
+            var violations = PASSENGER_VALIDATOR.validate(passenger);
+            if (!violations.isEmpty()) {
+                throw new IllegalArgumentException(violations.iterator().next().getMessage());
+            }
+            return passenger;
         } catch (DateTimeParseException | IllegalArgumentException e) {
             throw new InvalidDataException(
                     "Line " + lineNumber + ": invalid passenger data: " + e.getMessage(),
