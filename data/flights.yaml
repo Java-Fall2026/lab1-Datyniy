@@ -1,0 +1,150 @@
+- flightNumber: "PS-101"
+  departureAirport:
+    iataCode: "KBP"
+    cityName: "Київ"
+  arrivalAirport:
+    iataCode: "WAW"
+    cityName: "Варшава"
+  departureTime: "2026-11-02T08:30:00"
+  arrivalTime: "2026-11-02T10:30:00"
+  status: "SCHEDULED"
+- flightNumber: "PS-102"
+  departureAirport:
+    iataCode: "WAW"
+    cityName: "Варшава"
+  arrivalAirport:
+    iataCode: "BER"
+    cityName: "Берлін"
+  departureTime: "2026-11-02T11:30:00"
+  arrivalTime: "2026-11-02T13:30:00"
+  status: "COMPLETED"
+- flightNumber: "PS/112"
+  departureAirport:
+    iataCode: "KBP"
+    cityName: "Київ"
+  arrivalAirport:
+    iataCode: "WAW"
+    cityName: "Варшава"
+  departureTime: "2026-11-02T08:30:00"
+  arrivalTime: "2026-11-02T10:30:00"
+  status: "SCHEDULED"
+- flightNumber: "PS-103"
+  departureAirport:
+    iataCode: "BER"
+    cityName: "Берлін"
+  arrivalAirport:
+    iataCode: "CDG"
+    cityName: "Париж"
+  departureTime: "2026-11-02T14:30:00"
+  arrivalTime: "2026-11-02T16:30:00"
+  status: "DELAYED"
+- flightNumber: "PS-104"
+  departureAirport:
+    iataCode: "CDG"
+    cityName: "Париж"
+  arrivalAirport:
+    iataCode: "FCO"
+    cityName: "Рим"
+  departureTime: "2026-11-02T17:30:00"
+  arrivalTime: "2026-11-02T19:30:00"
+  status: "BOARDING"
+- flightNumber: "PS-113"
+  departureAirport:
+    iataCode: "KBP"
+    cityName: "Київ"
+  arrivalAirport:
+    iataCode: "WAW"
+    cityName: "Варшава"
+  departureTime: "2026-11-02T08:30:00"
+  arrivalTime: "2026-11-02T10:30:00"
+  status: null
+- flightNumber: "PS-105"
+  departureAirport:
+    iataCode: "FCO"
+    cityName: "Рим"
+  arrivalAirport:
+    iataCode: "VIE"
+    cityName: "Відень"
+  departureTime: "2026-11-02T20:30:00"
+  arrivalTime: "2026-11-02T22:30:00"
+  status: "CANCELLED"
+- flightNumber: "PS-106"
+  departureAirport:
+    iataCode: "VIE"
+    cityName: "Відень"
+  arrivalAirport:
+    iataCode: "PRG"
+    cityName: "Прага"
+  departureTime: "2026-11-02T23:30:00"
+  arrivalTime: "2026-11-03T01:30:00"
+  status: "SCHEDULED"
+- flightNumber: "PS-114"
+  departureAirport:
+    iataCode: "KBP"
+    cityName: "Київ"
+  arrivalAirport:
+    iataCode: "WAW"
+    cityName: "Варшава"
+  departureTime: "2026-11-02T08:30:00"
+  arrivalTime: "2026-11-02T07:45:00"
+  status: "SCHEDULED"
+- flightNumber: "PS-107"
+  departureAirport:
+    iataCode: "PRG"
+    cityName: "Прага"
+  arrivalAirport:
+    iataCode: "WAW"
+    cityName: "Варшава"
+  departureTime: "2026-11-03T02:30:00"
+  arrivalTime: "2026-11-03T04:30:00"
+  status: "COMPLETED"
+- flightNumber: "PS-108"
+  departureAirport:
+    iataCode: "WAW"
+    cityName: "Варшава"
+  arrivalAirport:
+    iataCode: "AMS"
+    cityName: "Амстердам"
+  departureTime: "2026-11-03T05:30:00"
+  arrivalTime: "2026-11-03T07:30:00"
+  status: "DELAYED"
+- flightNumber: "PS-101"
+  departureAirport:
+    iataCode: "KBP"
+    cityName: "Київ"
+  arrivalAirport:
+    iataCode: "WAW"
+    cityName: "Варшава"
+  departureTime: "2026-11-02T08:30:00"
+  arrivalTime: "2026-11-02T10:30:00"
+  status: "CANCELLED"
+- flightNumber: "PS-109"
+  departureAirport:
+    iataCode: "AMS"
+    cityName: "Амстердам"
+  arrivalAirport:
+    iataCode: "CPH"
+    cityName: "Копенгаген"
+  departureTime: "2026-11-03T08:30:00"
+  arrivalTime: "2026-11-03T10:30:00"
+  status: "BOARDING"
+- flightNumber: "PS-110"
+  departureAirport:
+    iataCode: "CPH"
+    cityName: "Копенгаген"
+  arrivalAirport:
+    iataCode: "OSL"
+    cityName: "Осло"
+  departureTime: "2026-11-03T11:30:00"
+  arrivalTime: "2026-11-03T13:30:00"
+  status: "CANCELLED"
+- flightNumber: "PS-111"
+  departureAirport:
+    iataCode: "OSL"
+    cityName: "Осло"
+  arrivalAirport:
+    iataCode: "HEL"
+    cityName: "Гельсінкі"
+  departureTime: "2026-11-03T14:30:00"
+  arrivalTime: "2026-11-03T16:30:00"
+  status: "SCHEDULED"

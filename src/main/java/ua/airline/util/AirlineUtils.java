@@ -6,8 +6,6 @@ import ua.airline.model.FlightStatus;
 import ua.airline.model.SeatClass;
 
 import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public final class AirlineUtils {
 
@@ -61,19 +59,6 @@ public final class AirlineUtils {
         return FormatHelper.formatMoney(value);
     }
 
-    public static LocalDate validateBirthDate(LocalDate birthDate) {
-        requireNotNull(birthDate, "Birth date");
-
-        if (birthDate.isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException(
-                    "Birth date must not be in the future, got: "
-                            + birthDate
-            );
-        }
-
-        return birthDate;
-    }
-
     public static String validateIataCode(String iataCode) {
         requireNotBlank(iataCode, "IATA code");
 
@@ -100,21 +85,6 @@ public final class AirlineUtils {
             throw new IllegalArgumentException(
                     "Arrival airport must differ from departure airport, got: "
                             + arrivalAirport.iataCode()
-            );
-        }
-    }
-
-    public static void requireArrivalAfterDeparture(
-            LocalDateTime departureTime,
-            LocalDateTime arrivalTime
-    ) {
-        requireNotNull(departureTime, "Departure time");
-        requireNotNull(arrivalTime, "Arrival time");
-
-        if (!arrivalTime.isAfter(departureTime)) {
-            throw new IllegalArgumentException(
-                    "Arrival time must be after departure time, got: "
-                            + arrivalTime
             );
         }
     }

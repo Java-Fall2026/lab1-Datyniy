@@ -1,66 +1,62 @@
 package ua.airline.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import ua.airline.util.AirlineUtils;
+import ua.airline.validation.ValidFlightTimes;
 import ua.common.BaseEntity;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+@ValidFlightTimes
+@JsonIgnoreProperties("createdAt")
 public final class Flight extends BaseEntity implements Comparable<Flight> {
 
+    @NotBlank(message = "Вкажіть номер рейсу")
+    @Pattern(regexp = "[A-Za-z0-9-]*",
+            message = "Номер рейсу може містити лише латинські літери, цифри та дефіс")
     private final String flightNumber;
+
+    @NotNull(message = "Вкажіть аеропорт вильоту")
     private final Airport departureAirport;
+
+    @NotNull(message = "Вкажіть аеропорт прибуття")
     private final Airport arrivalAirport;
+
+    @NotNull(message = "Вкажіть час вильоту")
     private final LocalDateTime departureTime;
+
+    @NotNull(message = "Вкажіть час прибуття")
     private final LocalDateTime arrivalTime;
+
+    @NotNull(message = "Вкажіть статус рейсу")
     private FlightStatus status;
 
+    @JsonCreator
     public Flight(
-            String flightNumber,
-            Airport departureAirport,
-            Airport arrivalAirport,
-            LocalDateTime departureTime,
-            LocalDateTime arrivalTime,
-            FlightStatus status
+            @JsonProperty("flightNumber") String flightNumber,
+            @JsonProperty("departureAirport") Airport departureAirport,
+            @JsonProperty("arrivalAirport") Airport arrivalAirport,
+            @JsonProperty("departureTime") LocalDateTime departureTime,
+            @JsonProperty("arrivalTime") LocalDateTime arrivalTime,
+            @JsonProperty("status") FlightStatus status
     ) {
         super();
+        if (departureAirport != null && arrivalAirport != null) {
+            AirlineUtils.requireDifferentAirports(departureAirport, arrivalAirport);
+        }
 
-        this.flightNumber = AirlineUtils.requireNotBlank(
-                flightNumber,
-                "Flight number"
-        );
-
-        this.departureAirport = AirlineUtils.requireNotNull(
-                departureAirport,
-                "Departure airport"
-        );
-
-        this.arrivalAirport = AirlineUtils.requireNotNull(
-                arrivalAirport,
-                "Arrival airport"
-        );
-
-        AirlineUtils.requireDifferentAirports(
-                this.departureAirport,
-                this.arrivalAirport
-        );
-
-        this.departureTime = AirlineUtils.requireNotNull(
-                departureTime,
-                "Departure time"
-        );
-
-        this.arrivalTime = AirlineUtils.requireNotNull(
-                arrivalTime,
-                "Arrival time"
-        );
-
-        AirlineUtils.requireArrivalAfterDeparture(
-                this.departureTime,
-                this.arrivalTime
-        );
-
-        setStatus(status);
+        this.flightNumber = flightNumber;
+        this.departureAirport = departureAirport;
+        this.arrivalAirport = arrivalAirport;
+        this.departureTime = departureTime;
+        this.arrivalTime = arrivalTime;
+        this.status = status;
     }
 
     public String getFlightNumber() {
