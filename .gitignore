@@ -10,3 +10,5 @@ bin/
 .DS_Store
 logs/
 /data/passengers-saved.json
+
+/state/

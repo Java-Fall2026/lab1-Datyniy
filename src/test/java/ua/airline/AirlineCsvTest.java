@@ -1,5 +1,6 @@
 package ua.airline;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -23,6 +24,7 @@ class AirlineCsvTest {
     Path tempDir;
 
     @Test
+    @DisplayName("Parses Passenger And Trims Fields")
     void parsesPassengerAndTrimsFields() throws InvalidDataException {
         Passenger passenger = AirlineCsvParsers.parsePassenger(
                 " PP10001 , Ivan Petrenko , 2000-05-12 ", 2
@@ -35,6 +37,7 @@ class AirlineCsvTest {
     }
 
     @Test
+    @DisplayName("Parses Airport And Normalizes Code")
     void parsesAirportAndNormalizesCode() throws InvalidDataException {
         Airport airport = AirlineCsvParsers.parseAirport(" kbp , Kyiv ", 2);
 
@@ -42,6 +45,7 @@ class AirlineCsvTest {
     }
 
     @Test
+    @DisplayName("Wraps Invalid Date With Line Number And Original Cause")
     void wrapsInvalidDateWithLineNumberAndOriginalCause() {
         InvalidDataException exception = assertThrows(
                 InvalidDataException.class,
@@ -53,6 +57,7 @@ class AirlineCsvTest {
     }
 
     @Test
+    @DisplayName("Wraps Empty Name Validation With Line Number And Cause")
     void wrapsEmptyNameValidationWithLineNumberAndCause() {
         InvalidDataException exception = assertThrows(
                 InvalidDataException.class,
@@ -65,6 +70,7 @@ class AirlineCsvTest {
     }
 
     @Test
+    @DisplayName("Rejects Future Birth Date")
     void rejectsFutureBirthDate() {
         InvalidDataException exception = assertThrows(
                 InvalidDataException.class,
@@ -78,6 +84,7 @@ class AirlineCsvTest {
     }
 
     @Test
+    @DisplayName("Rejects Missing Column")
     void rejectsMissingColumn() {
         InvalidDataException exception = assertThrows(
                 InvalidDataException.class,
@@ -89,6 +96,7 @@ class AirlineCsvTest {
     }
 
     @Test
+    @DisplayName("Rejects Extra Column")
     void rejectsExtraColumn() {
         InvalidDataException exception = assertThrows(
                 InvalidDataException.class,
@@ -100,6 +108,7 @@ class AirlineCsvTest {
     }
 
     @Test
+    @DisplayName("Wraps Invalid Airport Code")
     void wrapsInvalidAirportCode() {
         InvalidDataException exception = assertThrows(
                 InvalidDataException.class,
@@ -111,6 +120,7 @@ class AirlineCsvTest {
     }
 
     @Test
+    @DisplayName("Preserves Trailing Empty Field For Validation")
     void preservesTrailingEmptyFieldForValidation() {
         InvalidDataException exception = assertThrows(
                 InvalidDataException.class,
@@ -123,6 +133,7 @@ class AirlineCsvTest {
     }
 
     @Test
+    @DisplayName("Rejects Blank Row")
     void rejectsBlankRow() {
         InvalidDataException exception = assertThrows(
                 InvalidDataException.class,
@@ -133,6 +144,7 @@ class AirlineCsvTest {
     }
 
     @Test
+    @DisplayName("Continues After Different Invalid Rows And Uses Physical Line Numbers")
     void continuesAfterDifferentInvalidRowsAndUsesPhysicalLineNumbers() throws IOException {
         Path file = writeCsv(
                 "passengers.csv",
@@ -162,6 +174,7 @@ class AirlineCsvTest {
     }
 
     @Test
+    @DisplayName("Loads Airports After Invalid Rows")
     void loadsAirportsAfterInvalidRows() throws IOException {
         Path file = writeCsv(
                 "airports.csv",
@@ -183,6 +196,7 @@ class AirlineCsvTest {
     }
 
     @Test
+    @DisplayName("Missing File Returns Empty List Without Throwing")
     void missingFileReturnsEmptyListWithoutThrowing() {
         List<Passenger> passengers = assertDoesNotThrow(
                 () -> passengerLoader().load(tempDir.resolve("missing.csv"))
@@ -192,6 +206,7 @@ class AirlineCsvTest {
     }
 
     @Test
+    @DisplayName("Rejects Wrong Header Without Treating Data As Passengers")
     void rejectsWrongHeaderWithoutTreatingDataAsPassengers() throws IOException {
         Path file = writeCsv(
                 "wrong-header.csv",
@@ -202,6 +217,7 @@ class AirlineCsvTest {
     }
 
     @Test
+    @DisplayName("Empty File Returns Empty List Without Throwing")
     void emptyFileReturnsEmptyListWithoutThrowing() throws IOException {
         Path file = writeCsv("empty.csv", "");
 

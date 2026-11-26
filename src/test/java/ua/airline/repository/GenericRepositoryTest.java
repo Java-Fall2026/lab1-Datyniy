@@ -1,6 +1,7 @@
 package ua.airline.repository;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -30,6 +31,7 @@ class GenericRepositoryTest {
     }
 
     @Test
+    @DisplayName("Finds Added Item")
     void findsAddedItem() {
         Airport airport = Airport.of("KBP", "Kyiv");
 
@@ -43,11 +45,13 @@ class GenericRepositoryTest {
     }
 
     @Test
+    @DisplayName("Returns Empty Optional For Missing Identity")
     void returnsEmptyOptionalForMissingIdentity() {
         assertTrue(repository.findByIdentity("ZZZ").isEmpty());
     }
 
     @Test
+    @DisplayName("Rejects Duplicate Identity Without Replacing Original")
     void rejectsDuplicateIdentityWithoutReplacingOriginal() {
         Airport original = Airport.of("KBP", "Kyiv");
         repository.add(original);
@@ -69,6 +73,7 @@ class GenericRepositoryTest {
     }
 
     @Test
+    @DisplayName("Add If Absent Returns False Without Changing Size")
     void addIfAbsentReturnsFalseWithoutChangingSize() {
         Airport airport = Airport.of("KBP", "Kyiv");
         assertTrue(repository.addIfAbsent(airport));
@@ -85,6 +90,7 @@ class GenericRepositoryTest {
     }
 
     @Test
+    @DisplayName("Removes Existing Item")
     void removesExistingItem() {
         repository.add(Airport.of("KBP", "Kyiv"));
         Airport remaining = Airport.of("WAW", "Warsaw");
@@ -100,6 +106,7 @@ class GenericRepositoryTest {
     }
 
     @Test
+    @DisplayName("Returns False When Removing Missing Item")
     void returnsFalseWhenRemovingMissingItem() {
         Airport airport = Airport.of("KBP", "Kyiv");
         repository.add(airport);
@@ -113,29 +120,32 @@ class GenericRepositoryTest {
     }
 
     @Test
-    void findAllReturnsUnmodifiableSnapshot() {
-        Airport airport = Airport.of("KBP", "Kyiv");
-        repository.add(airport);
+    @DisplayName("Find All Returns Unmodifiable List")
+    void findAllReturnsUnmodifiableList() {
+        repository.add(Airport.of("KBP", "Kyiv"));
         List<Airport> result = repository.findAll();
 
-        assertThrows(
-                UnsupportedOperationException.class,
-                () -> result.clear()
-        );
-        assertEquals(1, repository.size());
-        assertSame(
-                airport,
-                repository.findByIdentity("KBP").orElseThrow()
-        );
-
-        Airport nextAirport = Airport.of("WAW", "Warsaw");
-        repository.add(nextAirport);
-
-        assertEquals(List.of(airport), result);
-        assertEquals(List.of(airport, nextAirport), repository.findAll());
+        assertThrows(UnsupportedOperationException.class, result::clear);
+        assertEquals(result, repository.findAll());
     }
 
     @Test
+    @DisplayName("Find All Returns Snapshot Unaffected By Later Additions")
+    void findAllReturnsSnapshotUnaffectedByLaterAdditions() {
+        Airport first = Airport.of("KBP", "Kyiv");
+        Airport second = Airport.of("WAW", "Warsaw");
+        repository.add(first);
+        List<Airport> snapshot = repository.findAll();
+
+        repository.add(second);
+
+        assertEquals(List.of(first), snapshot);
+        assertEquals(List.of(first, second), repository.findAll());
+    }
+
+
+    @Test
+    @DisplayName("Works With Different Domain Types")
     void worksWithDifferentDomainTypes() {
         GenericRepository<Passenger> passengers =
                 new GenericRepository<>(
@@ -166,6 +176,7 @@ class GenericRepositoryTest {
     }
 
     @Test
+    @DisplayName("Rejects Null Item Without Changing Repository")
     void rejectsNullItemWithoutChangingRepository() {
         assertThrows(
                 IllegalArgumentException.class,
@@ -175,6 +186,7 @@ class GenericRepositoryTest {
     }
 
     @ParameterizedTest
+    @DisplayName("Rejects Missing Or Blank Extracted Identity")
     @NullAndEmptySource
     @ValueSource(strings = {" ", "\t"})
     void rejectsMissingOrBlankExtractedIdentity(String identity) {
@@ -191,6 +203,7 @@ class GenericRepositoryTest {
     }
 
     @Test
+    @DisplayName("Adds All Items In Collection Order")
     void addsAllItemsInCollectionOrder() {
         Airport first = Airport.of("KBP", "Kyiv");
         Airport second = Airport.of("WAW", "Warsaw");
@@ -202,6 +215,7 @@ class GenericRepositoryTest {
     }
 
     @Test
+    @DisplayName("Add All Stops At Duplicate And Keeps Earlier Additions")
     void addAllStopsAtDuplicateAndKeepsEarlierAdditions() {
         Airport original = Airport.of("KBP", "Kyiv");
         Airport beforeDuplicate = Airport.of("BER", "Berlin");
@@ -221,6 +235,7 @@ class GenericRepositoryTest {
     }
 
     @Test
+    @DisplayName("Copies All Items Without Removing Them From Source")
     void copiesAllItemsWithoutRemovingThemFromSource() {
         Airport first = Airport.of("KBP", "Kyiv");
         Airport second = Airport.of("WAW", "Warsaw");
@@ -239,6 +254,7 @@ class GenericRepositoryTest {
     }
 
     @Test
+    @DisplayName("Keeps Flight Searchable After Changing Its Status")
     void keepsFlightSearchableAfterChangingItsStatus() {
         GenericRepository<Flight> flights = new GenericRepository<>(
                 "flights",
@@ -261,4 +277,30 @@ class GenericRepositoryTest {
         assertEquals(FlightStatus.BOARDING, found.getStatus());
         assertEquals(1, flights.size());
     }
+    @Test
+    @DisplayName("Replace updates an existing identity and preserves insertion order")
+    void replacesExistingIdentity() {
+        repository.add(Airport.of("KBP", "Kyiv"));
+        Airport second = Airport.of("WAW", "Warsaw");
+        repository.add(second);
+        Airport changed = Airport.of("KBP", "Updated city");
+
+        assertTrue(repository.replace(changed));
+        assertEquals(List.of(changed, second), repository.findAll());
+        assertSame(changed, repository.findByIdentity("KBP").orElseThrow());
+    }
+
+    @Test
+    @DisplayName("Replace of a missing identity does not insert an object")
+    void doesNotInsertDuringReplace() {
+        assertFalse(repository.replace(Airport.of("KBP", "Kyiv")));
+        assertEquals(0, repository.size());
+    }
+
+    @Test
+    @DisplayName("IdentityOf uses the configured extractor")
+    void exposesExtractedIdentity() {
+        assertEquals("KBP", repository.identityOf(Airport.of("KBP", "Kyiv")));
+    }
+
 }

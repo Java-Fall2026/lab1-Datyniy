@@ -13,10 +13,27 @@ public final class AppProperties {
     }
 
     public Path requiredPath(String key) {
+        return Path.of(requiredValue(key));
+    }
+
+    public int requiredPort(String key) {
+        String value = requiredValue(key);
+        try {
+            int port = Integer.parseInt(value);
+            if (port < 0 || port > 65535) {
+                throw new IllegalArgumentException("Port for property " + key + " must be between 0 and 65535");
+            }
+            return port;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Property " + key + " must contain an integer port", e);
+        }
+    }
+
+    private String requiredValue(String key) {
         String value = values.getProperty(key);
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("Missing value for property " + key);
         }
-        return Path.of(value.trim());
+        return value.trim();
     }
 }

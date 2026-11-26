@@ -41,7 +41,7 @@ public class GenericRepository<T> {
         this.extractor = extractor;
     }
 
-    public void add(T item) {
+    public synchronized void add(T item) {
         String identity = extractValidIdentity(item);
 
         if (items.containsKey(identity)) {
@@ -57,7 +57,7 @@ public class GenericRepository<T> {
         log.info("Added identity '{}' to repository '{}'", identity, name);
     }
 
-    public boolean addIfAbsent(T item) {
+    public synchronized boolean addIfAbsent(T item) {
         String identity = extractValidIdentity(item);
 
         if (items.containsKey(identity)) {
@@ -92,7 +92,21 @@ public class GenericRepository<T> {
         }
     }
 
-    public boolean removeByIdentity(String identity) {
+    public synchronized boolean replace(T item) {
+        String identity = extractValidIdentity(item);
+        if (!items.containsKey(identity)) {
+            return false;
+        }
+        items.put(identity, item);
+        log.info("Replaced identity '{}' in repository '{}'", identity, name);
+        return true;
+    }
+
+    public String identityOf(T item) {
+        return extractValidIdentity(item);
+    }
+
+    public synchronized boolean removeByIdentity(String identity) {
         T removed = items.remove(identity);
 
         if (removed == null) {
@@ -108,7 +122,7 @@ public class GenericRepository<T> {
         return true;
     }
 
-    public Optional<T> findByIdentity(String identity) {
+    public synchronized Optional<T> findByIdentity(String identity) {
         T item = items.get(identity);
 
         if (item == null) {
@@ -128,7 +142,7 @@ public class GenericRepository<T> {
      * Returns an unmodifiable snapshot of the collection, not a deep copy
      * of the stored items.
      */
-    public List<T> findAll() {
+    public synchronized List<T> findAll() {
         return List.copyOf(items.values());
     }
 
@@ -143,7 +157,7 @@ public class GenericRepository<T> {
     /**
      * Sorts string identities lexicographically, not numerically.
      */
-    public List<T> findAllSortedByIdentity(SortOrder order) {
+    public synchronized List<T> findAllSortedByIdentity(SortOrder order) {
         Objects.requireNonNull(order, "Sort order must not be null");
         Comparator<Map.Entry<String, T>> comparator = Map.Entry.comparingByKey();
         if (order == SortOrder.DESC) {
@@ -159,15 +173,14 @@ public class GenericRepository<T> {
     }
 
     /**
-     * Returns a fresh, single-use stream backed by the repository.
-     * Do not structurally modify the repository while consuming it.
-     * Unlike findAll(), this method does not create a list snapshot.
+     * Returns a fresh stream over a snapshot, safe from concurrent map updates.
+     * The snapshot contains the stored objects, not deep copies.
      */
     public Stream<T> stream() {
-        return items.values().stream();
+        return findAll().stream();
     }
 
-    public int size() {
+    public synchronized int size() {
         return items.size();
     }
 
