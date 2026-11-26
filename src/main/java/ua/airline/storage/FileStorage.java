@@ -1,13 +1,9 @@
 package ua.airline.storage;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -15,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class FileStorage<T> {
-    private static final ObjectMapper JSON = configure(new ObjectMapper());
-    private static final ObjectMapper YAML = configure(new ObjectMapper(new YAMLFactory()));
+    private static final ObjectMapper JSON = JsonMappers.json();
+    private static final ObjectMapper YAML = JsonMappers.yaml();
 
     private final Class<T> itemType;
 
@@ -56,9 +52,4 @@ public final class FileStorage<T> {
         };
     }
 
-    private static ObjectMapper configure(ObjectMapper mapper) {
-        return mapper.registerModule(new JavaTimeModule())
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
-    }
 }

@@ -1,5 +1,6 @@
 package ua.airline;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import ua.airline.model.Airport;
@@ -18,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class AirlineModelTest {
 
     @Test
+    @DisplayName("Creates Valid Passenger")
     void createsValidPassenger() {
         Passenger passenger = Passenger.of(
                 "PP10001", "Ivan Petrenko", LocalDate.of(2000, 5, 12)
@@ -29,6 +31,7 @@ class AirlineModelTest {
     }
 
     @Test
+    @DisplayName("Creates Airport With Normalized Code")
     void createsAirportWithNormalizedCode() {
         Airport airport = Airport.of("  kbp  ", "Kyiv");
 
@@ -37,6 +40,7 @@ class AirlineModelTest {
     }
 
     @Test
+    @DisplayName("Creates Valid Ticket")
     void createsValidTicket() {
         Flight flight = sampleFlight();
         Passenger passenger = Passenger.of(
@@ -54,6 +58,7 @@ class AirlineModelTest {
     }
 
     @Test
+    @DisplayName("Record Constructor Still Throws Unchecked Validation Exception")
     void recordConstructorStillThrowsUncheckedValidationException() {
         assertThrows(
                 IllegalArgumentException.class,
@@ -62,16 +67,19 @@ class AirlineModelTest {
     }
 
     @Test
+    @DisplayName("Calculates Flight Duration Across Midnight")
     void calculatesFlightDurationAcrossMidnight() {
         assertEquals(90L, AirlineUtils.flightDurationMinutes(sampleFlight()));
     }
 
     @Test
+    @DisplayName("Builds Flight Route")
     void buildsFlightRoute() {
         assertEquals("KBP → WAW", AirlineUtils.route(sampleFlight()));
     }
 
     @Test
+    @DisplayName("Invalid Setter Value Does Not Change Existing Status")
     void invalidSetterValueDoesNotChangeExistingStatus() {
         Flight flight = sampleFlight();
 

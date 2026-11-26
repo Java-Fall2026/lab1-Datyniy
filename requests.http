@@ -1,0 +1,192 @@
+@baseUrl = http://localhost:8080
+
+### Passenger collection: 200
+GET {{baseUrl}}/api/passengers
+
+### Combined text filter, date range, sorting and pagination: 200
+GET {{baseUrl}}/api/passengers?name=Олена&birthFrom=1980-01-01&birthTo=2005-12-31&sort=birthDate&order=DESC&offset=0&limit=5
+
+### Existing passenger: 200
+GET {{baseUrl}}/api/passengers/PP10001
+
+### Create passenger: 201 with Location (run once)
+POST {{baseUrl}}/api/passengers
+Content-Type: application/json
+
+{"passportSeriesNum":"LAB7-001","fullName":"Марія Коваленко","birthDate":"2000-05-12"}
+
+### Duplicate passenger: 409 (run after the creation above)
+POST {{baseUrl}}/api/passengers
+Content-Type: application/json
+
+{"passportSeriesNum":"LAB7-001","fullName":"Марія Коваленко","birthDate":"2000-05-12"}
+
+### Update passenger: 200
+PUT {{baseUrl}}/api/passengers/LAB7-001
+Content-Type: application/json; charset=UTF-8
+
+{"passportSeriesNum":"LAB7-001","fullName":"Марія Петренко","birthDate":"2000-05-12"}
+
+### Updated passenger: 200
+GET {{baseUrl}}/api/passengers/LAB7-001
+
+### Passenger statistics: 200
+GET {{baseUrl}}/api/passengers/stats
+
+### Delete passenger: 204, empty body
+DELETE {{baseUrl}}/api/passengers/LAB7-001
+
+### Missing passenger: 404 (run after DELETE)
+GET {{baseUrl}}/api/passengers/LAB7-001
+
+### Passenger validation: 400 with all violations
+POST {{baseUrl}}/api/passengers
+Content-Type: application/json
+
+{"passportSeriesNum":"","fullName":"","birthDate":null}
+
+### Malformed JSON: 400
+POST {{baseUrl}}/api/passengers
+Content-Type: application/json
+
+{"passportSeriesNum":
+
+### Unsupported Content-Type: 415
+POST {{baseUrl}}/api/passengers
+Content-Type: text/plain
+
+{"passportSeriesNum":"NEW","fullName":"Ivan","birthDate":"2000-05-12"}
+
+### Invalid query value: 400
+GET {{baseUrl}}/api/passengers?limit=abc
+
+### Unknown sort: 400
+GET {{baseUrl}}/api/passengers?sort=unknown
+
+### Invalid order: 400
+GET {{baseUrl}}/api/passengers?order=SIDEWAYS
+
+### Unsupported collection method: 405
+DELETE {{baseUrl}}/api/passengers
+
+### Unsupported item method: 405
+POST {{baseUrl}}/api/passengers/PP10001
+Content-Type: application/json
+
+{}
+
+### Identity change is forbidden: 400
+PUT {{baseUrl}}/api/passengers/PP10001
+Content-Type: application/json
+
+{"passportSeriesNum":"DIFFERENT","fullName":"Марія","birthDate":"2000-05-12"}
+
+### Flight collection: 200
+GET {{baseUrl}}/api/flights
+
+### Combined flight text and departure filters: 200
+GET {{baseUrl}}/api/flights?number=PS-&departureFrom=2026-11-02T00:00:00&departureTo=2026-11-04T00:00:00&sort=departureTime&order=DESC&limit=5&offset=0
+
+### Existing flight: 200
+GET {{baseUrl}}/api/flights/PS-101
+
+### Create flight: 201 with Location (run once)
+POST {{baseUrl}}/api/flights
+Content-Type: application/json
+
+{
+  "flightNumber":"LAB7-701",
+  "departureAirport":{"iataCode":"KBP","cityName":"Київ"},
+  "arrivalAirport":{"iataCode":"WAW","cityName":"Варшава"},
+  "departureTime":"2026-12-01T10:00:00",
+  "arrivalTime":"2026-12-01T12:00:00",
+  "status":"SCHEDULED"
+}
+
+### Duplicate flight: 409 (run after the creation above)
+POST {{baseUrl}}/api/flights
+Content-Type: application/json
+
+{
+  "flightNumber":"LAB7-701",
+  "departureAirport":{"iataCode":"KBP","cityName":"Київ"},
+  "arrivalAirport":{"iataCode":"WAW","cityName":"Варшава"},
+  "departureTime":"2026-12-01T10:00:00",
+  "arrivalTime":"2026-12-01T12:00:00",
+  "status":"SCHEDULED"
+}
+
+### Update flight: 200
+PUT {{baseUrl}}/api/flights/LAB7-701
+Content-Type: application/json
+
+{
+  "flightNumber":"LAB7-701",
+  "departureAirport":{"iataCode":"KBP","cityName":"Київ"},
+  "arrivalAirport":{"iataCode":"WAW","cityName":"Варшава"},
+  "departureTime":"2026-12-01T10:00:00",
+  "arrivalTime":"2026-12-01T12:00:00",
+  "status":"DELAYED"
+}
+
+### Updated flight: 200
+GET {{baseUrl}}/api/flights/LAB7-701
+
+### Flight statistics: 200
+GET {{baseUrl}}/api/flights/stats
+
+### Delete flight: 204
+DELETE {{baseUrl}}/api/flights/LAB7-701
+
+### Missing flight: 404 (run after DELETE)
+GET {{baseUrl}}/api/flights/LAB7-701
+
+### Custom flight-time validation: 400
+POST {{baseUrl}}/api/flights
+Content-Type: application/json
+
+{
+  "flightNumber":"LAB7-702",
+  "departureAirport":{"iataCode":"KBP","cityName":"Київ"},
+  "arrivalAirport":{"iataCode":"WAW","cityName":"Варшава"},
+  "departureTime":"2026-12-01T10:00:00",
+  "arrivalTime":"2026-12-01T09:00:00",
+  "status":null
+}
+
+### Malformed flight JSON: 400
+POST {{baseUrl}}/api/flights
+Content-Type: application/json
+
+{"flightNumber":
+
+### Invalid flight parameter: 400
+GET {{baseUrl}}/api/flights?departureFrom=not-a-date
+
+### Unsupported flight Content-Type: 415
+POST {{baseUrl}}/api/flights
+Content-Type: text/plain
+
+{}
+
+### Unsupported flight method: 405
+DELETE {{baseUrl}}/api/flights
+
+### Missing flight on PUT: 404
+PUT {{baseUrl}}/api/flights/MISSING
+Content-Type: application/json
+
+{
+  "flightNumber":"MISSING",
+  "departureAirport":{"iataCode":"KBP","cityName":"Київ"},
+  "arrivalAirport":{"iataCode":"WAW","cityName":"Варшава"},
+  "departureTime":"2026-12-01T10:00:00",
+  "arrivalTime":"2026-12-01T12:00:00",
+  "status":"SCHEDULED"
+}
+
+### Extra path segment: 404
+GET {{baseUrl}}/api/flights/PS-101/extra
+
+### Completely unknown endpoint: JSON 404
+GET {{baseUrl}}/api/unknown

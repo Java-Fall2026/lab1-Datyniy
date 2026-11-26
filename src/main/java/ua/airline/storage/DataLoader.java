@@ -33,7 +33,7 @@ public final class DataLoader {
             records = storage.readRecords(file);
         } catch (IOException | IllegalArgumentException e) {
             return report(file, new LoadResult(0, 0, List.of(
-                    rejection(null, "file", "Не вдалося прочитати файл. " + e.getMessage()))));
+                    rejection(null, "file", "Failed to read file. " + e.getMessage()))));
         }
 
         int added = 0;
@@ -44,12 +44,13 @@ public final class DataLoader {
             try {
                 item = storage.readItem(file, records.get(index));
             } catch (JsonProcessingException e) {
+                log.warn("Failed to parse record #{} in {}: {}", number, file, e.getOriginalMessage());
                 rejected.add(rejection(number, mappingField(e),
-                        "Не вдалося розібрати запис. " + e.getOriginalMessage()));
+                        "Failed to parse record. " + e.getOriginalMessage()));
                 continue;
             }
             if (item == null) {
-                rejected.add(rejection(number, "record", "Запис не може бути порожнім"));
+                rejected.add(rejection(number, "record", "Record must not be null"));
                 continue;
             }
 
@@ -69,7 +70,7 @@ public final class DataLoader {
                 repository.add(item);
                 added++;
             } catch (DuplicateIdentityException e) {
-                rejected.add(rejection(number, "identity", "Дублікат ідентичності. " + e.getMessage()));
+                rejected.add(rejection(number, "identity", "Duplicate identity. " + e.getMessage()));
             }
         }
 
@@ -94,18 +95,21 @@ public final class DataLoader {
     }
 
     private static LoadResult report(Path file, LoadResult result) {
-        log.info("{} | прочитано {}, додано {}, відкинуто {}",
+        log.info("{} | read {}, added {}, rejected {}",
                 file, result.readCount(), result.addedCount(), result.rejected().size());
         for (Rejection rejection : result.rejected()) {
             String location = rejection.recordNumber() == null
-                    ? "помилка файлу" : "запис №" + rejection.recordNumber();
-            String details = rejection.errors().stream()
-                    .map(error -> error.field() + " — " + error.message().replaceAll("\\R", " "))
-                    .collect(Collectors.joining(" | "));
+                    ? "file error" : "record #" + rejection.recordNumber();
+            String fields = rejection.errors().stream()
+                    .map(FieldError::field)
+                    .collect(Collectors.joining(", "));
             if (rejection.recordNumber() == null) {
+                String details = rejection.errors().stream()
+                        .map(error -> error.message().replaceAll("\\R", " "))
+                        .collect(Collectors.joining(" | "));
                 log.error("{} | {} | {}", file, location, details);
             } else {
-                log.warn("{} | {} | {}", file, location, details);
+                log.warn("{} | {} | rejected fields: {}", file, location, fields);
             }
         }
         return result;

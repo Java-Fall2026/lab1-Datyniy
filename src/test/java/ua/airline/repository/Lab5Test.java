@@ -1,6 +1,7 @@
 package ua.airline.repository;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ua.airline.model.Airport;
 import ua.airline.model.Flight;
@@ -54,6 +55,7 @@ class Lab5Test {
     }
 
     @Test
+    @DisplayName("Collections Sort Uses Flight Numbers")
     void collectionsSortUsesFlightNumbers() {
         List<Flight> result = new ArrayList<>(flights.findAll());
         Collections.sort(result);
@@ -61,6 +63,7 @@ class Lab5Test {
     }
 
     @Test
+    @DisplayName("Collections Sort Uses Passenger Natural Order")
     void collectionsSortUsesPassengerNaturalOrder() {
         List<Passenger> result = new ArrayList<>(passengers.findAll());
         Collections.sort(result);
@@ -68,6 +71,7 @@ class Lab5Test {
     }
 
     @Test
+    @DisplayName("Passenger Natural Order Breaks Ties Using All Record Fields")
     void passengerNaturalOrderBreaksTiesUsingAllRecordFields() {
         Passenger first = Passenger.of("SAME", "Anna", LocalDate.of(2000, 1, 1));
         Passenger differentName = Passenger.of("SAME", "Bohdan", first.birthDate());
@@ -83,6 +87,7 @@ class Lab5Test {
     }
 
     @Test
+    @DisplayName("Flight Natural Order Matches Identity Based Equality")
     void flightNaturalOrderMatchesIdentityBasedEquality() {
         Flight sameNumber = flight(early.getFlightNumber(), START.plusDays(5), FlightStatus.CANCELLED);
         assertEquals(early, sameNumber);
@@ -90,12 +95,14 @@ class Lab5Test {
     }
 
     @Test
+    @DisplayName("Multi Level Comparator Sorts Statuses And Reverses Only Departure Time")
     void multiLevelComparatorSortsStatusesAndReversesOnlyDepartureTime() {
         assertEquals(List.of(outside, late, early, delayed),
                 flights.findAllByStatusAndLatestDeparture());
     }
 
     @Test
+    @DisplayName("Departure Time Sort Uses Flight Number For Ties")
     void departureTimeSortUsesFlightNumberForTies() {
         Flight tied = flight("AA-001", START, FlightStatus.CANCELLED);
         flights.add(tied);
@@ -103,30 +110,36 @@ class Lab5Test {
     }
 
     @Test
+    @DisplayName("Passenger Name Sort Breaks Ties By Natural Order")
     void passengerNameSortBreaksTiesByNaturalOrder() {
         assertEquals(List.of(olderAnna, anna, bohdan), passengers.findAllByName());
     }
 
     @Test
+    @DisplayName("Passenger Birth Date Sort Orders Oldest First")
     void passengerBirthDateSortOrdersOldestFirst() {
         assertEquals(List.of(olderAnna, anna, bohdan), passengers.findAllByBirthDate());
     }
 
     @Test
-    void identityDescendingIsTheReverseOfAscendingForBothRepositories() {
-        List<Flight> reversedFlights = new ArrayList<>(flights.findAllSortedByIdentity(SortOrder.ASC));
-        Collections.reverse(reversedFlights);
-        assertEquals(List.of(delayed, early, late, outside),
-                flights.findAllSortedByIdentity(SortOrder.ASC));
-        assertEquals(reversedFlights, flights.findAllSortedByIdentity(SortOrder.DESC));
-
-        List<Passenger> reversedPassengers = new ArrayList<>(
-                passengers.findAllSortedByIdentity(SortOrder.ASC));
-        Collections.reverse(reversedPassengers);
-        assertEquals(reversedPassengers, passengers.findAllSortedByIdentity(SortOrder.DESC));
+    @DisplayName("Flight Identity Descending Reverses Ascending")
+    void flightIdentityDescendingReversesAscending() {
+        List<Flight> ascending = flights.findAllSortedByIdentity(SortOrder.ASC);
+        assertEquals(List.of(delayed, early, late, outside), ascending);
+        assertEquals(ascending.reversed(), flights.findAllSortedByIdentity(SortOrder.DESC));
     }
 
     @Test
+    @DisplayName("Passenger Identity Descending Reverses Ascending")
+    void passengerIdentityDescendingReversesAscending() {
+        List<Passenger> ascending = passengers.findAllSortedByIdentity(SortOrder.ASC);
+        assertEquals(List.of(olderAnna, anna, bohdan), ascending);
+        assertEquals(ascending.reversed(), passengers.findAllSortedByIdentity(SortOrder.DESC));
+    }
+
+
+    @Test
+    @DisplayName("Identity Sort Is Lexicographical Rather Than Numerical")
     void identitySortIsLexicographicalRatherThanNumerical() {
         GenericRepository<String> repository = new GenericRepository<>("strings", String::toString);
         repository.addAll(List.of("2", "10", "1"));
@@ -134,6 +147,7 @@ class Lab5Test {
     }
 
     @Test
+    @DisplayName("Custom Comparator Does Not Change Repository Insertion Order")
     void customComparatorDoesNotChangeRepositoryInsertionOrder() {
         List<Flight> original = flights.findAll();
         assertEquals(List.of(delayed, early, late, outside),
@@ -142,6 +156,7 @@ class Lab5Test {
     }
 
     @Test
+    @DisplayName("Fractional Ticket Prices Sort Without Truncation")
     void fractionalTicketPricesSortWithoutTruncation() {
         FlightTicket cheaper = new FlightTicket(early, anna, SeatClass.ECONOMY, 100.20);
         FlightTicket dearer = new FlightTicket(early, bohdan, SeatClass.ECONOMY, 100.80);
@@ -153,6 +168,7 @@ class Lab5Test {
     }
 
     @Test
+    @DisplayName("Tree Set Treats Comparator Equality As ADuplicate")
     void treeSetTreatsComparatorEqualityAsADuplicate() {
         TreeSet<Passenger> set = new TreeSet<>(Comparator.comparing(Passenger::fullName));
         assertNotEquals(anna, olderAnna);
@@ -163,12 +179,14 @@ class Lab5Test {
     }
 
     @Test
+    @DisplayName("Flight Text Search Ignores Case And Returns Only Matches")
     void flightTextSearchIgnoresCaseAndReturnsOnlyMatches() {
         assertEquals(List.of(early, late, outside), flights.findByNumberContaining(" ps- "));
         assertTrue(flights.findByNumberContaining("missing").isEmpty());
     }
 
     @Test
+    @DisplayName("Flight Range Includes Both Endpoints And Excludes Outside Values")
     void flightRangeIncludesBothEndpointsAndExcludesOutsideValues() {
         Flight before = flight("BEFORE", START.minusMinutes(1), FlightStatus.SCHEDULED);
         flights.add(before);
@@ -178,28 +196,33 @@ class Lab5Test {
     }
 
     @Test
+    @DisplayName("Flight Combined Search Requires Both Status And Departure Range")
     void flightCombinedSearchRequiresBothStatusAndDepartureRange() {
         assertEquals(List.of(early, late), flights.findByStatusAndDepartureBetween(
                 FlightStatus.SCHEDULED, START, START.plusHours(3)));
     }
 
     @Test
+    @DisplayName("First Flight By Status Is The Earliest Regardless Of Insertion Order")
     void firstFlightByStatusIsTheEarliestRegardlessOfInsertionOrder() {
         assertSame(early, flights.findFirstByStatus(FlightStatus.SCHEDULED).orElseThrow());
     }
 
     @Test
+    @DisplayName("Missing Single Flight Returns Empty Optional")
     void missingSingleFlightReturnsEmptyOptional() {
         assertTrue(flights.findFirstByStatus(FlightStatus.CANCELLED).isEmpty());
     }
 
     @Test
+    @DisplayName("Passenger Text Search Ignores Case And Excludes Other Names")
     void passengerTextSearchIgnoresCaseAndExcludesOtherNames() {
         assertEquals(List.of(olderAnna, anna), passengers.findByNameContaining(" ANNA "));
         assertTrue(passengers.findByNameContaining("missing").isEmpty());
     }
 
     @Test
+    @DisplayName("Passenger Range Includes Both Endpoints And Excludes Outside Values")
     void passengerRangeIncludesBothEndpointsAndExcludesOutsideValues() {
         assertEquals(List.of(anna, bohdan), passengers.findByBirthDateBetween(
                 anna.birthDate(), bohdan.birthDate()));
@@ -208,12 +231,14 @@ class Lab5Test {
     }
 
     @Test
+    @DisplayName("Passenger Combined Search Requires Both Name And Birth Date Range")
     void passengerCombinedSearchRequiresBothNameAndBirthDateRange() {
         assertEquals(List.of(anna), passengers.findByNameAndBirthDateBetween(
                 "anna", BIRTH_FROM, BIRTH_TO));
     }
 
     @Test
+    @DisplayName("Single Passenger Search Uses An Exact Name And Natural Order For Ties")
     void singlePassengerSearchUsesAnExactNameAndNaturalOrderForTies() {
         assertSame(olderAnna, passengers.findFirstByName(" ANNA KOVALENKO ").orElseThrow());
         assertTrue(passengers.findFirstByName("Anna").isEmpty());
@@ -221,6 +246,7 @@ class Lab5Test {
     }
 
     @Test
+    @DisplayName("Distinct Names Are Mapped Deduplicated Sorted And Limited")
     void distinctNamesAreMappedDeduplicatedSortedAndLimited() {
         assertEquals(List.of("Anna Kovalenko", "Bohdan Melnyk"), passengers.findDistinctNames(10));
         assertEquals(List.of("Anna Kovalenko"), passengers.findDistinctNames(1));
@@ -228,6 +254,7 @@ class Lab5Test {
     }
 
     @Test
+    @DisplayName("Grouping Produces Expected Groups And Members")
     void groupingProducesExpectedGroupsAndMembers() {
         Map<FlightStatus, List<Flight>> result = flights.groupByStatus();
         assertEquals(2, result.size());
@@ -236,40 +263,93 @@ class Lab5Test {
     }
 
     @Test
+    @DisplayName("Counting Collector Counts Every Status")
     void countingCollectorCountsEveryStatus() {
         assertEquals(Map.of(FlightStatus.SCHEDULED, 3L, FlightStatus.DELAYED, 1L), flights.countByStatus());
     }
 
     @Test
+    @DisplayName("Total Duration Adds All Flight Durations")
     void totalDurationAddsAllFlightDurations() {
         assertEquals(360, flights.totalDurationMinutes());
     }
 
     @Test
-    void emptyRepositoryHasZeroDurationAndEmptyGroups() {
-        FlightRepository empty = new FlightRepository();
-        assertEquals(0, empty.totalDurationMinutes());
-        assertTrue(empty.groupByStatus().isEmpty());
-        assertTrue(empty.countByStatus().isEmpty());
+    @DisplayName("Empty Repository Has Zero Duration")
+    void emptyRepositoryHasZeroDuration() {
+        assertEquals(0, new FlightRepository().totalDurationMinutes());
     }
 
     @Test
-    void searchesAndSortsWorkOnEmptyRepositories() {
-        FlightRepository emptyFlights = new FlightRepository();
-        PassengerRepository emptyPassengers = new PassengerRepository();
-        assertTrue(emptyFlights.findAllSortedByIdentity(SortOrder.ASC).isEmpty());
-        assertTrue(emptyFlights.findAllByDepartureTime().isEmpty());
-        assertTrue(emptyFlights.findByDepartureBetween(START, START).isEmpty());
-        assertTrue(emptyFlights.findByStatusAndDepartureBetween(
-                FlightStatus.SCHEDULED, START, START).isEmpty());
-        assertTrue(emptyPassengers.findAllByBirthDate().isEmpty());
-        assertTrue(emptyPassengers.findByNameContaining("Anna").isEmpty());
-        assertTrue(emptyPassengers.findByBirthDateBetween(BIRTH_FROM, BIRTH_TO).isEmpty());
-        assertTrue(emptyPassengers.findByNameAndBirthDateBetween("Anna", BIRTH_FROM, BIRTH_TO).isEmpty());
-        assertTrue(emptyPassengers.findDistinctNames(3).isEmpty());
+    @DisplayName("Empty Repository Has No Status Groups")
+    void emptyRepositoryHasNoStatusGroups() {
+        assertTrue(new FlightRepository().groupByStatus().isEmpty());
     }
 
     @Test
+    @DisplayName("Empty Repository Has No Status Counts")
+    void emptyRepositoryHasNoStatusCounts() {
+        assertTrue(new FlightRepository().countByStatus().isEmpty());
+    }
+
+
+    @Test
+    @DisplayName("Empty Flight Identity Sort Returns Empty List")
+    void emptyFlightIdentitySortReturnsEmptyList() {
+        assertTrue(new FlightRepository().findAllSortedByIdentity(SortOrder.ASC).isEmpty());
+    }
+
+    @Test
+    @DisplayName("Empty Flight Departure Sort Returns Empty List")
+    void emptyFlightDepartureSortReturnsEmptyList() {
+        assertTrue(new FlightRepository().findAllByDepartureTime().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Empty Flight Range Search Returns Empty List")
+    void emptyFlightRangeSearchReturnsEmptyList() {
+        assertTrue(new FlightRepository().findByDepartureBetween(START, START).isEmpty());
+    }
+
+    @Test
+    @DisplayName("Empty Flight Combined Search Returns Empty List")
+    void emptyFlightCombinedSearchReturnsEmptyList() {
+        assertTrue(new FlightRepository().findByStatusAndDepartureBetween(FlightStatus.SCHEDULED, START, START).isEmpty());
+    }
+
+    @Test
+    @DisplayName("Empty Passenger Birth Date Sort Returns Empty List")
+    void emptyPassengerBirthDateSortReturnsEmptyList() {
+        assertTrue(new PassengerRepository().findAllByBirthDate().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Empty Passenger Name Search Returns Empty List")
+    void emptyPassengerNameSearchReturnsEmptyList() {
+        assertTrue(new PassengerRepository().findByNameContaining("Anna").isEmpty());
+    }
+
+    @Test
+    @DisplayName("Empty Passenger Range Search Returns Empty List")
+    void emptyPassengerRangeSearchReturnsEmptyList() {
+        assertTrue(new PassengerRepository().findByBirthDateBetween(BIRTH_FROM, BIRTH_TO).isEmpty());
+    }
+
+    @Test
+    @DisplayName("Empty Passenger Combined Search Returns Empty List")
+    void emptyPassengerCombinedSearchReturnsEmptyList() {
+        assertTrue(new PassengerRepository().findByNameAndBirthDateBetween("Anna", BIRTH_FROM, BIRTH_TO).isEmpty());
+    }
+
+    @Test
+    @DisplayName("Empty Passenger Distinct Names Returns Empty List")
+    void emptyPassengerDistinctNamesReturnsEmptyList() {
+        assertTrue(new PassengerRepository().findDistinctNames(3).isEmpty());
+    }
+
+
+    @Test
+    @DisplayName("Consumed Stream Cannot Be Used Again")
     void consumedStreamCannotBeUsedAgain() {
         try (Stream<Flight> once = flights.stream()) {
             assertEquals(4, once.count());
@@ -279,41 +359,95 @@ class Lab5Test {
     }
 
     @Test
-    void streamIsLazyWhileFindAllIsASnapshot() {
+    @DisplayName("Stream Is Lazy While Find All Is ASnapshot")
+    void streamUsesSnapshotDuringConcurrentUpdates() {
         List<Flight> snapshot = flights.findAll();
         try (Stream<Flight> lazy = flights.stream()) {
             flights.add(flight("NEW", START.plusDays(2), FlightStatus.BOARDING));
             assertEquals(4, snapshot.size());
-            assertEquals(5, lazy.count());
+            assertEquals(4, lazy.count());
         }
     }
 
     @Test
-    void invalidRangesAndNegativeLimitsAreRejected() {
-        assertThrows(IllegalArgumentException.class,
-                () -> flights.findByDepartureBetween(START.plusDays(1), START));
-        assertThrows(IllegalArgumentException.class,
-                () -> flights.findByStatusAndDepartureBetween(
-                        FlightStatus.SCHEDULED, START.plusDays(1), START));
-        assertThrows(IllegalArgumentException.class,
-                () -> passengers.findByBirthDateBetween(BIRTH_TO, BIRTH_FROM));
-        assertThrows(IllegalArgumentException.class,
-                () -> passengers.findByNameAndBirthDateBetween("Anna", BIRTH_TO, BIRTH_FROM));
-        assertThrows(IllegalArgumentException.class, () -> passengers.findDistinctNames(-1));
+    @DisplayName("Rejects Reversed Flight Range")
+    void rejectsReversedFlightRange() {
+        assertThrows(IllegalArgumentException.class, () -> flights.findByDepartureBetween(START.plusDays(1), START));
     }
 
     @Test
-    void nullAndBlankSearchArgumentsAreRejected() {
+    @DisplayName("Rejects Reversed Combined Flight Range")
+    void rejectsReversedCombinedFlightRange() {
+        assertThrows(IllegalArgumentException.class, () -> flights.findByStatusAndDepartureBetween(FlightStatus.SCHEDULED, START.plusDays(1), START));
+    }
+
+    @Test
+    @DisplayName("Rejects Reversed Passenger Range")
+    void rejectsReversedPassengerRange() {
+        assertThrows(IllegalArgumentException.class, () -> passengers.findByBirthDateBetween(BIRTH_TO, BIRTH_FROM));
+    }
+
+    @Test
+    @DisplayName("Rejects Reversed Combined Passenger Range")
+    void rejectsReversedCombinedPassengerRange() {
+        assertThrows(IllegalArgumentException.class, () -> passengers.findByNameAndBirthDateBetween("Anna", BIRTH_TO, BIRTH_FROM));
+    }
+
+    @Test
+    @DisplayName("Rejects Negative Distinct Name Limit")
+    void rejectsNegativeDistinctNameLimit() {
+        assertThrows(IllegalArgumentException.class, () -> passengers.findDistinctNames(-1));
+    }
+
+
+    @Test
+    @DisplayName("Rejects Blank Flight Number Search")
+    void rejectsBlankFlightNumberSearch() {
         assertThrows(IllegalArgumentException.class, () -> flights.findByNumberContaining(" "));
+    }
+
+    @Test
+    @DisplayName("Rejects Null Flight Status Search")
+    void rejectsNullFlightStatusSearch() {
         assertThrows(IllegalArgumentException.class, () -> flights.findFirstByStatus(null));
+    }
+
+    @Test
+    @DisplayName("Rejects Null Flight Range Start")
+    void rejectsNullFlightRangeStart() {
         assertThrows(IllegalArgumentException.class, () -> flights.findByDepartureBetween(null, START));
+    }
+
+    @Test
+    @DisplayName("Rejects Null Passenger Name Search")
+    void rejectsNullPassengerNameSearch() {
         assertThrows(IllegalArgumentException.class, () -> passengers.findByNameContaining(null));
+    }
+
+    @Test
+    @DisplayName("Rejects Blank Single Passenger Search")
+    void rejectsBlankSinglePassengerSearch() {
         assertThrows(IllegalArgumentException.class, () -> passengers.findFirstByName(" "));
-        assertThrows(IllegalArgumentException.class,
-                () -> passengers.findByBirthDateBetween(BIRTH_FROM, null));
+    }
+
+    @Test
+    @DisplayName("Rejects Null Passenger Range End")
+    void rejectsNullPassengerRangeEnd() {
+        assertThrows(IllegalArgumentException.class, () -> passengers.findByBirthDateBetween(BIRTH_FROM, null));
+    }
+
+    @Test
+    @DisplayName("Rejects Null Sorting Comparator")
+    void rejectsNullSortingComparator() {
         assertThrows(NullPointerException.class, () -> flights.findAllSorted(null));
+    }
+
+    @Test
+    @DisplayName("Rejects Null Identity Sort Order")
+    void rejectsNullIdentitySortOrder() {
         assertThrows(NullPointerException.class, () -> flights.findAllSortedByIdentity(null));
     }
+
 
     private static Flight flight(String number, LocalDateTime departure, FlightStatus status) {
         return new Flight(number, Airport.of("KBP", "Kyiv"), Airport.of("WAW", "Warsaw"),

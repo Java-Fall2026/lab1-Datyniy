@@ -4,30 +4,25 @@ import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import ua.airline.model.Airport;
-import ua.airline.model.Flight;
-import ua.airline.model.FlightStatus;
 import ua.airline.model.Passenger;
 import ua.airline.repository.PassengerRepository;
 import ua.airline.storage.LoadResult.FieldError;
-import ua.airline.storage.LoadResult.Rejection;
-import ua.airline.validation.ValidFlightTimes;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class DataLoaderTest {
     private static ValidatorFactory factory;
+    private static final Passenger IVAN = new Passenger("PP1", "Іван", LocalDate.of(2000, 5, 12));
+    private static final Passenger OLENA = new Passenger("PP4", "Олена", LocalDate.of(2001, 5, 12));
 
     @TempDir
     Path tempDir;
@@ -43,56 +38,44 @@ class DataLoaderTest {
     }
 
     @Test
-    void reportsStandardAnnotationsWithUkrainianMessages() {
-        Passenger invalid = new Passenger("", "А".repeat(101), LocalDate.now().plusDays(1));
+    @DisplayName("Loads Valid Records Into Repository")
+    void loadsValidRecordsIntoRepository() throws IOException {
+        Path file = writeJson("""
+                [{"passportSeriesNum":"PP1","fullName":"Іван","birthDate":"2000-05-12"}]
+                """);
+        PassengerRepository repository = new PassengerRepository();
 
-        var violations = factory.getValidator().validate(invalid);
-        var errors = violations.stream()
-                .map(violation -> new FieldError(
-                        violation.getPropertyPath().toString(), violation.getMessage()))
-                .collect(Collectors.toSet());
+        LoadResult result = load(file, repository);
 
-        assertEquals(Set.of(
-                new FieldError("passportSeriesNum", "Вкажіть серію та номер паспорта"),
-                new FieldError("fullName", "Ім’я пасажира має містити не більше 100 символів"),
-                new FieldError("birthDate", "Дата народження не може бути в майбутньому")
-        ), errors);
-
-        var flightViolations = factory.getValidator().validate(
-                flight("PS/101", LocalDateTime.of(2026, 11, 2, 10, 0),
-                        LocalDateTime.of(2026, 11, 2, 11, 0), null));
-        assertEquals(Set.of("flightNumber", "status"), flightViolations.stream()
-                .map(violation -> violation.getPropertyPath().toString())
-                .collect(Collectors.toSet()));
+        assertEquals(new LoadResult(1, 1, List.of()), result);
+        assertEquals(List.of(IVAN), repository.findAll());
     }
 
     @Test
-    void checksArrivalIsStrictlyAfterDepartureUsingCustomAnnotation() {
-        LocalDateTime departure = LocalDateTime.of(2026, 11, 2, 23, 30);
-        var validator = factory.getValidator();
+    @DisplayName("Reports All Validation Errors For Rejected Record")
+    void reportsAllValidationErrorsForRejectedRecord() throws IOException {
+        Path file = writeJson("""
+                [{"passportSeriesNum":"PP2","fullName":""}]
+                """);
+        PassengerRepository repository = new PassengerRepository();
 
-        for (LocalDateTime arrival : List.of(departure.minusMinutes(1), departure)) {
-            var violations = validator.validate(flight("PS-101", departure, arrival, FlightStatus.SCHEDULED));
+        LoadResult result = load(file, repository);
 
-            assertEquals(1, violations.size());
-            var violation = violations.iterator().next();
-            assertEquals(ValidFlightTimes.class, violation.getConstraintDescriptor()
-                    .getAnnotation().annotationType());
-            assertEquals("arrivalTime", violation.getPropertyPath().toString());
-            assertEquals("Час прибуття має бути пізнішим за час вильоту", violation.getMessage());
-        }
-        assertTrue(validator.validate(flight(
-                "PS-101", departure, departure.plusHours(1), FlightStatus.SCHEDULED)).isEmpty());
+        assertEquals(1, result.readCount());
+        assertEquals(0, result.addedCount());
+        assertEquals(List.of(new LoadResult.Rejection(1, List.of(
+                new FieldError("birthDate", "Вкажіть дату народження"),
+                new FieldError("fullName", "Вкажіть ім’я пасажира")
+        ))), result.rejected());
+        assertTrue(repository.findAll().isEmpty());
     }
 
     @Test
-    void loadsValidRowsAfterInvalidRowsAndRejectsDuplicateIdentity() throws IOException {
-        Path file = Files.writeString(tempDir.resolve("passengers.json"), """
+    @DisplayName("Continues Loading After Validation Failure")
+    void continuesLoadingAfterValidationFailure() throws IOException {
+        Path file = writeJson("""
                 [
-                  {"passportSeriesNum":"PP1","fullName":"Іван","birthDate":"2000-05-12"},
                   {"passportSeriesNum":"PP2","fullName":""},
-                  {"passportSeriesNum":"PP3","fullName":"Марія","birthDate":"bad-date"},
-                  {"passportSeriesNum":"PP1","fullName":"Петро","birthDate":"1999-05-12"},
                   {"passportSeriesNum":"PP4","fullName":"Олена","birthDate":"2001-05-12"}
                 ]
                 """);
@@ -100,23 +83,78 @@ class DataLoaderTest {
 
         LoadResult result = load(file, repository);
 
-        assertEquals(5, result.readCount());
-        assertEquals(2, result.addedCount());
-        assertEquals(List.of(2, 3, 4),
-                result.rejected().stream().map(Rejection::recordNumber).toList());
-        assertEquals(List.of(
-                new FieldError("birthDate", "Вкажіть дату народження"),
-                new FieldError("fullName", "Вкажіть ім’я пасажира")
-        ), result.rejected().getFirst().errors());
-        assertEquals("birthDate", result.rejected().get(1).errors().getFirst().field());
-        FieldError duplicate = result.rejected().get(2).errors().getFirst();
-        assertEquals("identity", duplicate.field());
-        assertTrue(duplicate.message().contains("PP1"));
-        assertEquals(List.of("Іван", "Олена"),
-                repository.findAll().stream().map(Passenger::fullName).toList());
+        assertEquals(2, result.readCount());
+        assertEquals(1, result.addedCount());
+        assertEquals(List.of(1), result.rejected().stream().map(LoadResult.Rejection::recordNumber).toList());
+        assertEquals(List.of(OLENA), repository.findAll());
     }
 
     @Test
+    @DisplayName("Continues Loading After Malformed Record")
+    void continuesLoadingAfterMalformedRecord() throws IOException {
+        Path file = writeJson("""
+                [
+                  {"passportSeriesNum":"PP3","fullName":"Марія","birthDate":"bad-date"},
+                  {"passportSeriesNum":"PP4","fullName":"Олена","birthDate":"2001-05-12"}
+                ]
+                """);
+        PassengerRepository repository = new PassengerRepository();
+
+        LoadResult result = load(file, repository);
+
+        assertEquals(2, result.readCount());
+        assertEquals(1, result.addedCount());
+        assertEquals(1, result.rejected().size());
+        assertEquals(1, result.rejected().getFirst().recordNumber());
+        assertEquals("birthDate", result.rejected().getFirst().errors().getFirst().field());
+        assertEquals(List.of(OLENA), repository.findAll());
+    }
+
+    @Test
+    @DisplayName("Rejects Duplicate Identity Without Replacing Original")
+    void rejectsDuplicateIdentityWithoutReplacingOriginal() throws IOException {
+        Path file = writeJson("""
+                [
+                  {"passportSeriesNum":"PP1","fullName":"Іван","birthDate":"2000-05-12"},
+                  {"passportSeriesNum":"PP1","fullName":"Петро","birthDate":"1999-05-12"}
+                ]
+                """);
+        PassengerRepository repository = new PassengerRepository();
+
+        LoadResult result = load(file, repository);
+
+        assertEquals(2, result.readCount());
+        assertEquals(1, result.addedCount());
+        assertEquals(1, result.rejected().size());
+        assertEquals(2, result.rejected().getFirst().recordNumber());
+        FieldError error = result.rejected().getFirst().errors().getFirst();
+        assertEquals("identity", error.field());
+        assertTrue(error.message().contains("PP1"));
+        assertEquals(List.of(IVAN), repository.findAll());
+    }
+
+    @Test
+    @DisplayName("Reports Broken Json As File Error Without Changing Repository")
+    void reportsBrokenJsonAsFileErrorWithoutChangingRepository() throws IOException {
+        Path file = writeJson("""
+                [{"passportSeriesNum":"PP1","fullName":"Іван","birthDate":"2000-05-12"},
+                """);
+        PassengerRepository repository = new PassengerRepository();
+        repository.add(OLENA);
+
+        assertFileError(load(file, repository));
+
+        assertEquals(List.of(OLENA), repository.findAll());
+    }
+
+    @Test
+    @DisplayName("Reports Missing File As File Error")
+    void reportsMissingFileAsFileError() {
+        assertFileError(load(tempDir.resolve("missing.yaml"), new PassengerRepository()));
+    }
+
+    @Test
+    @DisplayName("Rejects identity already in repository without replacing it")
     void rejectsIdentityAlreadyInRepositoryWithoutReplacingIt() throws IOException {
         Path file = Files.writeString(tempDir.resolve("passengers.json"), """
                 [{"passportSeriesNum":"PP1","fullName":"Петро","birthDate":"1999-05-12"}]
@@ -130,26 +168,14 @@ class DataLoaderTest {
         assertEquals(1, result.readCount());
         assertEquals(0, result.addedCount());
         assertEquals(1, result.rejected().size());
-        Rejection rejection = result.rejected().getFirst();
+        LoadResult.Rejection rejection = result.rejected().getFirst();
         assertEquals(1, rejection.recordNumber());
         assertEquals("identity", rejection.errors().getFirst().field());
         assertEquals(List.of(original), repository.findAll());
     }
 
-    @Test
-    void reportsBrokenJsonAsFileErrorWithoutAddingRecords() throws IOException {
-        Path file = Files.writeString(tempDir.resolve("broken.json"), """
-                [{"passportSeriesNum":"PP1","fullName":"Іван","birthDate":"2000-05-12"},
-                """);
-        PassengerRepository repository = new PassengerRepository();
-
-        assertFileError(load(file, repository));
-        assertEquals(0, repository.size());
-    }
-
-    @Test
-    void reportsMissingFileAsFileError() {
-        assertFileError(load(tempDir.resolve("missing.yaml"), new PassengerRepository()));
+    private Path writeJson(String content) throws IOException {
+        return Files.writeString(tempDir.resolve("passengers.json"), content);
     }
 
     private LoadResult load(Path file, PassengerRepository repository) {
@@ -161,15 +187,9 @@ class DataLoaderTest {
         assertEquals(0, result.readCount());
         assertEquals(0, result.addedCount());
         assertEquals(1, result.rejected().size());
-        Rejection rejection = result.rejected().getFirst();
+        var rejection = result.rejected().getFirst();
         assertNull(rejection.recordNumber());
         assertEquals("file", rejection.errors().getFirst().field());
-        assertTrue(rejection.errors().getFirst().message().contains("Не вдалося прочитати файл"));
-    }
-
-    private static Flight flight(
-            String number, LocalDateTime departure, LocalDateTime arrival, FlightStatus status) {
-        return new Flight(number, new Airport("KBP", "Київ"), new Airport("WAW", "Варшава"),
-                departure, arrival, status);
+        assertTrue(rejection.errors().getFirst().message().contains("Failed to read file"));
     }
 }

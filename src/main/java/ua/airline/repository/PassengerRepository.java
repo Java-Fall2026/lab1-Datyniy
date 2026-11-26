@@ -9,6 +9,8 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.Optional;
 
 public class PassengerRepository extends GenericRepository<Passenger> {
@@ -96,6 +98,13 @@ public class PassengerRepository extends GenericRepository<Passenger> {
                 .limit(limit)
                 .toList();
         logSearch("distinct names ASC, limit=" + limit, result.size());
+        return result;
+    }
+
+    public Map<Integer, Long> countByBirthYear() {
+        Map<Integer, Long> result = stream().collect(Collectors.groupingBy(
+                passenger -> passenger.birthDate().getYear(), Collectors.counting()));
+        log.info("Counted passengers by birth year into {} groups", result.size());
         return result;
     }
 
